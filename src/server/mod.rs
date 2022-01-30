@@ -6,6 +6,7 @@ use crate::server::threadpool::ThreadPool;
 
 mod threadpool;
 mod cache;
+pub mod left_right_parse_demo;
 
 pub fn main(site: Arc<Website>, address: &str) {
     println!("starting server...");

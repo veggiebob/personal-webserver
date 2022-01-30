@@ -13,3 +13,14 @@ fn main() {
     let site = Arc::new(Website::new(site));
     server::main(Arc::clone(&site), &addr)
 }
+
+#[cfg(test)]
+mod test {
+    use crate::server::left_right_parse_demo::run_parse_demo;
+
+    #[test]
+    fn parse_test () {
+        println!("HELLO WORLD///////////////////////");
+        panic!("{:?}", run_parse_demo("x + y", "expr"));
+    }
+}
