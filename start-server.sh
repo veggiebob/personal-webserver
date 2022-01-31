@@ -11,7 +11,6 @@ else
 
   # start the actual server, and then continue with other tasks
   # note that SERVER_GHR_DEPS is now defined
-  echo "Path is $PATH"
   bash run.sh "$1" "$2" &
   bash update-repos.sh
 fi

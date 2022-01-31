@@ -2,7 +2,10 @@
 /.idea
 /cache
 Cargo.lock
+
+# log files
 nohup.out
+.cargo-output
 
 # optional folder to put website in if it's not on the disk somewhere
 website/
