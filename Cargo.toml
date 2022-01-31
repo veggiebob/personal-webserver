@@ -1,5 +1,5 @@
 [package]
-name = "simple-rust-webserver"
+name = "personal-webserver"
 version = "0.0.0"
 edition = "2018"
 

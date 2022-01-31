@@ -41,7 +41,7 @@ impl Worker {
     pub fn new(id: usize, receiver: Arc<Mutex<Receiver<Job>>>) -> Worker {
         let join_handle = thread::spawn(move || loop {
             if let Ok(job) = Worker::get_job(&receiver) {
-                println!("Worker {} processing a job!", id);
+                // println!("Worker {} processing a job!", id);
                 job();
             } // skip over bad unwraps
         });

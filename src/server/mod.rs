@@ -1,7 +1,11 @@
+use std::collections::HashMap;
 use std::net::{TcpListener, TcpStream};
 use std::io::{Read, Write};
-use std::fs;
+use std::{fs, usize};
+use std::str::FromStr;
 use std::sync::Arc;
+use crate::server::left_right_parse_demo::run_parse_demo;
+use crate::server::Response::PlainText;
 use crate::server::threadpool::ThreadPool;
 
 mod threadpool;
@@ -81,33 +85,56 @@ impl Website {
     fn handle_connection(&self, mut stream: TcpStream) {
         let mut buffer = [0; 1024];
         stream.read(&mut buffer).unwrap();
-        println!("data: {}", String::from_utf8_lossy(&buffer[..]));
         let data_as_string: String = String::from_utf8_lossy(&buffer[..]).into();
-        let response = match data_as_string.split("\r\n").next() {
-            Some(line) => {
-                let args = line.split(" ").collect::<Vec<_>>();
-                if args.len() < 3 {
-                    create_bad_request_error("Badly formatted HTTP request.".to_string())
-                } else {
-                    let message_type = args[0];
-                    let url = args[1];
-                    let http_version = args[2];
-                    if http_version == "HTTP/6.9" {
-                        Response::PlainText(format!("HTTP/6.9 420 nice 👌\r\n\r\n"))
+        // split into header and body
+        let sections: Vec<_> = data_as_string.split("\r\n\r\n").collect();
+        let response = if sections.len() >= 2 {
+
+            let header = sections.get(0).unwrap();
+            let header_data = parse_headers(header);
+
+            let body = &buffer[(header.as_bytes().len() + 4)..]; // body as binary data
+            let body_text = sections.get(1).unwrap();
+
+            match header.split("\r\n").next() {
+                Some(line) => {
+                    let args = line.split(" ").collect::<Vec<_>>();
+                    if args.len() < 3 {
+                        create_bad_request_error("Badly formatted HTTP request.".to_string())
                     } else {
-                        match message_type {
-                            "GET" => self.handle_get(url),
-                            "PUT" => {
-                                create_bad_request_error("server doesn't expect a put request".to_string())
-                            },
-                            _ => {
-                                create_bad_request_error("what are you even trying to do".to_string())
+                        let message_type = args[0];
+                        let url = args[1];
+                        let http_version = args[2];
+                        if http_version == "HTTP/6.9" {
+                            Response::PlainText(format!("HTTP/6.9 420 nice 👌\r\n\r\n"))
+                        } else {
+                            match message_type {
+                                "GET" => self.handle_get(url),
+                                "POST" => {
+                                    println!("received a POST message!");
+                                    println!("data: {}", String::from_utf8_lossy(&buffer[..]));
+                                    if let Some(len) = header_data.get("Content-Length") {
+                                        if let Ok(len) = usize::from_str(len) {
+                                            let body = &body[..len as usize];
+                                            self.handle_put(url, &header_data, body)
+                                        } else {
+                                            create_bad_request_error("Content-Length not a number.".into())
+                                        }
+                                    } else {
+                                        create_bad_request_error("PUT request missing Content-Length header.".into())
+                                    }
+                                },
+                                _ => {
+                                    create_bad_request_error("what are you even trying to do".to_string())
+                                }
                             }
                         }
                     }
-                }
-            },
-            None => create_bad_request_error("Malformatted request.".to_string())
+                },
+                None => create_bad_request_error("Malformatted request.".to_string())
+            }
+        } else {
+            create_bad_request_error("Malformatted request.".into())
         };
         match response {
             Response::PlainText(string) => {
@@ -118,6 +145,23 @@ impl Website {
             }
         };
         stream.flush().unwrap();
+    }
+
+    fn handle_put(&self, url: &str, header: &Header, body: &[u8]) -> Response {
+        // println!("url is {}", url);
+        let body_text: String = String::from_utf8_lossy(body).into();
+        if url == "/parse" {
+            if let Some(mode) = header.get("Parse-Mode") {
+                match run_parse_demo(body_text, mode) {
+                    Ok(output) => PlainText(output),
+                    Err(e) => create_bad_request_error(e)
+                }
+            } else {
+                create_bad_request_error("Parse requires a 'Parse-Mode' header to work.".into())
+            }
+        } else {
+            create_bad_request_error(format!("Don't know what to do with the url {}", url))
+        }
     }
 
     fn handle_get(&self, url: &str) -> Response {
@@ -158,6 +202,25 @@ impl Website {
                 format!("Cannot handle GET Request. {}", error_message))
         }
     }
+}
+
+/// Like JSON but without infinite depth!
+type Header = HashMap<String, String>;
+
+fn parse_headers<T: ToString>(header: T) -> Header {
+    let header = header.to_string();
+    let lines = header.split("\r\n");
+    let mut data = Header::new();
+    for line in lines {
+        let parts = line.split(": ").collect::<Vec<_>>();
+        if parts.len() == 2 {
+            data.insert(
+                parts.get(0).unwrap().trim().into(),
+                parts.get(1).unwrap().trim().into()
+            );
+        }
+    }
+    data
 }
 
 fn create_bad_request_error(description: String) -> Response {
