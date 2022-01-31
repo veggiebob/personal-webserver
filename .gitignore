@@ -6,3 +6,7 @@ nohup.out
 
 # optional folder to put website in if it's not on the disk somewhere
 website/
+
+# place for dependencies, i.e. other git repositories or files that
+# need to be hosted locally.
+deps/
