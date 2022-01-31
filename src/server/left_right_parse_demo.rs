@@ -2,7 +2,7 @@ use std::ffi::OsStr;
 use std::io::Stdout;
 use std::process::{Command, Stdio};
 
-const EXECUTABLE_NAME: &str = "left-right-parsing";
+const EXECUTABLE_NAME: &str = "left-right-parser";
 pub fn run_parse_demo<X: AsRef<OsStr>, Y: AsRef<OsStr>>(input: X, mode: Y) -> Result<String, String> {
     let response = Command::new(EXECUTABLE_NAME)
         .arg("e") // evaluation mode
