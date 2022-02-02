@@ -7,6 +7,7 @@ pub fn run_parse_demo<X: AsRef<OsStr>, Y: AsRef<OsStr>>(input: X, mode: Y) -> Re
     let response = Command::new(EXECUTABLE_NAME)
         .arg("e") // evaluation mode
         .arg(mode) // 'stmt', 'expr', or 'prgm'*
+        .arg("json")
         .arg(&input)
         .stdout(Stdio::piped())
         .output();
