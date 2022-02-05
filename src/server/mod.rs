@@ -84,7 +84,10 @@ impl Website {
      */
     fn handle_connection(&self, mut stream: TcpStream) {
         let mut buffer = [0; 1024];
-        stream.read(&mut buffer).unwrap();
+        if let Err(e) = stream.read(&mut buffer) {
+            println!("An error occurred while trying to read from the string! Aborting! {}", e);
+            return;
+        }
         let data_as_string: String = String::from_utf8_lossy(&buffer[..]).into();
         // split into header and body
         let sections: Vec<_> = data_as_string.split("\r\n\r\n").collect();
