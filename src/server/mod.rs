@@ -155,7 +155,7 @@ impl Website {
         let body_text: String = String::from_utf8_lossy(body).into();
         if url == "/parse" {
             if let Some(mode) = header.get("Parse-Mode") {
-                match run_parse_demo(body_text, mode) {
+                match run_parse_demo(body_text, mode, header.get("Output-Mode").unwrap_or(&"json".to_string())) {
                     Ok(output) => PlainText(output),
                     Err(e) => create_bad_request_error(e)
                 }

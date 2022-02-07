@@ -21,6 +21,6 @@ mod test {
     #[test]
     fn parse_test () {
         println!("HELLO WORLD///////////////////////");
-        panic!("{:?}", run_parse_demo("x + y", "expr"));
+        panic!("{:?}", run_parse_demo("x + y", "expr", "json"));
     }
 }

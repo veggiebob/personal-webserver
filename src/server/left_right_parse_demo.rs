@@ -3,11 +3,11 @@ use std::io::Stdout;
 use std::process::{Command, Stdio};
 
 const EXECUTABLE_NAME: &str = "left-right-parser";
-pub fn run_parse_demo<X: AsRef<OsStr>, Y: AsRef<OsStr>>(input: X, mode: Y) -> Result<String, String> {
+pub fn run_parse_demo<X: AsRef<OsStr>, Y: AsRef<OsStr>, Z: AsRef<OsStr>>(input: X, mode: Y, output_mode: Z) -> Result<String, String> {
     let response = Command::new(EXECUTABLE_NAME)
         .arg("e") // evaluation mode
         .arg(mode) // 'stmt', 'expr', or 'prgm'*
-        .arg("json") // output format
+        .arg(output_mode) // output format
         .arg(&input)
         .stdout(Stdio::piped())
         .output();
@@ -25,5 +25,5 @@ pub fn run_parse_demo<X: AsRef<OsStr>, Y: AsRef<OsStr>>(input: X, mode: Y) -> Re
 
 #[test]
 fn test_run_demo() {
-    println!("{:?}", run_parse_demo("x + y", "expr"));
+    println!("{:?}", run_parse_demo("x + y", "expr", "json"));
 }
