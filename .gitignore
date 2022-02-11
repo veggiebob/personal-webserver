@@ -13,3 +13,6 @@ website/
 # place for dependencies, i.e. other git repositories or files that
 # need to be hosted locally.
 deps/
+
+# server logs
+log/

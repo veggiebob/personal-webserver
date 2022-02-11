@@ -4,6 +4,8 @@ use std::io::{Read, Write};
 use std::{fs, usize};
 use std::str::FromStr;
 use std::sync::Arc;
+use crate::info;
+use crate::Logger;
 use crate::server::left_right_parse_demo::run_parse_demo;
 use crate::server::Response::PlainText;
 use crate::server::threadpool::ThreadPool;
@@ -11,9 +13,10 @@ use crate::server::threadpool::ThreadPool;
 mod threadpool;
 mod cache;
 pub mod left_right_parse_demo;
+pub mod log;
 
 pub fn main(site: Arc<Website>, address: &str) {
-    println!("starting server...");
+    info!("starting server...");
     let listener = TcpListener::bind(address).unwrap();
     let threadpool = ThreadPool::new(4);
     for stream in listener.incoming() {
@@ -21,7 +24,7 @@ pub fn main(site: Arc<Website>, address: &str) {
         match stream {
             Ok(stream) => threadpool.execute(move || n_site.handle_connection(stream)),
             Err(e) => {
-                println!("An error occurred when connecting to the client! Luckily, they'll probably try to connect again. {}", e);
+                info!("An error occurred when connecting to the client! Luckily, they'll probably try to connect again. {}", e);
             }
         }
     }
@@ -85,7 +88,7 @@ impl Website {
     fn handle_connection(&self, mut stream: TcpStream) {
         let mut buffer = [0; 1024];
         if let Err(e) = stream.read(&mut buffer) {
-            println!("An error occurred while trying to read from the string! Aborting! {}", e);
+            info!("An error occurred while trying to read from the string! Aborting! {}", e);
             return;
         }
         let data_as_string: String = String::from_utf8_lossy(&buffer[..]).into();
@@ -114,8 +117,8 @@ impl Website {
                             match message_type {
                                 "GET" => self.handle_get(url),
                                 "POST" => {
-                                    println!("received a POST message!");
-                                    println!("data: {}", String::from_utf8_lossy(&buffer[..]));
+                                    info!("received a POST message!");
+                                    info!("data: {}", String::from_utf8_lossy(&buffer[..]));
                                     if let Some(len) = header_data.get("Content-Length") {
                                         if let Ok(len) = usize::from_str(len) {
                                             let body = &body[..len as usize];
