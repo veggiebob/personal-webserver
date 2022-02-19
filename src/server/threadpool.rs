@@ -1,6 +1,8 @@
 use std::sync::{Arc, mpsc, Mutex};
 use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
+use std::thread::JoinHandle;
+use crate::info;
 
 type Job = Box<dyn FnOnce() + Send + 'static>;
 
@@ -15,6 +17,7 @@ pub struct ThreadPool {
 }
 
 impl ThreadPool {
+
     pub fn new(num_workers: usize) -> ThreadPool {
 
         let (sender, receiver) = mpsc::channel();
@@ -38,19 +41,31 @@ impl ThreadPool {
 }
 
 impl Worker {
+
     pub fn new(id: usize, receiver: Arc<Mutex<Receiver<Job>>>) -> Worker {
-        let join_handle = thread::spawn(move || loop {
-            if let Ok(job) = Worker::get_job(&receiver) {
-                // println!("Worker {} processing a job!", id);
-                job();
-            } // skip over bad unwraps
+        let join_handle = thread::spawn(move || {
+            let receiver = receiver;
+            loop {
+                let receiver = Arc::clone(&receiver);
+                thread::spawn(
+                    move || loop {
+                        if let Ok(job) = Worker::get_job(&receiver) {
+                            println!("Worker {} processing a job!", id);
+                            job();
+                        } // skip over bad unwraps
+                    }
+                ).join();
+                println!("worker {} died! restarting!", id);
+            }
         });
         Worker {
             id,
             thread: join_handle
         }
     }
+
     fn get_job(receiver: &Arc<Mutex<Receiver<Job>>>) -> Result<Job, ()> {
         receiver.lock().map_err(|_| ())?.recv().map_err(|_| ())
     }
+
 }
