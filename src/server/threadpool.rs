@@ -50,12 +50,12 @@ impl Worker {
                 thread::spawn(
                     move || loop {
                         if let Ok(job) = Worker::get_job(&receiver) {
-                            println!("Worker {} processing a job!", id);
+                            // println!("Worker {} processing a job!", id);
                             job();
                         } // skip over bad unwraps
                     }
                 ).join();
-                println!("worker {} died! restarting!", id);
+                // println!("worker {} died! restarting!", id);
             }
         });
         Worker {
