@@ -3,6 +3,9 @@
 /cache
 Cargo.lock
 
+# configuration files
+python-config
+
 # log files
 nohup.out
 .cargo-output
