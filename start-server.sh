@@ -3,6 +3,7 @@
 if [ $# -lt 2 ]
 then
   echo "Needs at least 2 arguments: <website file location> <addr:port> [--init]"
+  echo "Website file location can be '.' in order to use dependent repositories in local dir"
 else
   if [[ $3 == "--init" ]]; then
     . bare-init.sh --create
