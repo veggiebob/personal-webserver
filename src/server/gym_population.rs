@@ -9,10 +9,14 @@ pub fn query_gym_data<X: AsRef<OsStr>>(input: X) -> Result<String, String> {
     match response {
         Err(e) => Err(format!("An error occurred when trying to run the program. \
             Is {} in the PATH? {}", EXECUTABLE_NAME, e.to_string())),
-        Ok(res) => Ok({
+        Ok(res) => {
             let str_output = std::str::from_utf8(&res.stdout[..]);
             let s = str_output.unwrap().to_string();
-            s
-        })
+            if s.trim().len() == 0 {
+                Err(format!("The program was run successfully, but there was no output! Is there sufficient data?"))
+            } else {
+                Ok(s)
+            }
+        }
     }
 }
