@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# nitty gritty stuff that actually runs the executable
+
 if [ $# -ne 2 ]
 then
   echo "Needs at least 2 arguments: <website file location> <addr:port>"

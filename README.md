@@ -14,12 +14,12 @@ Easiest way to run the server is by running
 
 (For the first time)
 ```bash
-bash start-server.sh . <host:port> --init
+./start-server --init
 ```
 
 (For any other time where the dependencies (folders in `/deps`) already exist)
 ```bash
-bash start-server.sh . <host:port>
+./start-server
 ```
 
 Note: Should be run in the root of the git repo.
