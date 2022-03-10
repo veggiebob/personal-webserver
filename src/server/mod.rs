@@ -6,6 +6,7 @@ use std::str::FromStr;
 use std::sync::Arc;
 use crate::info;
 use crate::Logger;
+use crate::server::gym_population::query_gym_data;
 use crate::server::left_right_parse_demo::run_parse_demo;
 use crate::server::Response::PlainText;
 use crate::server::threadpool::ThreadPool;
@@ -13,6 +14,7 @@ use crate::server::threadpool::ThreadPool;
 mod threadpool;
 mod cache;
 pub mod left_right_parse_demo;
+pub mod gym_population;
 pub mod log;
 
 pub fn main(site: Arc<Website>, address: &str) {
@@ -164,6 +166,12 @@ impl Website {
                 }
             } else {
                 create_bad_request_error("Parse requires a 'Parse-Mode' header to work.".into())
+            }
+        } else if url == "/gym-population" {
+            // run the gym data demo!
+            match query_gym_data("") {
+                Ok(output) => PlainText(output),
+                Err(e) => create_bad_request_error(e)
             }
         } else {
             create_bad_request_error(format!("Don't know what to do with the url {}", url))

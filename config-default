@@ -10,4 +10,3 @@ export WEBSITE_SRC_LOC="deps/personal-website"
 
 # set to a python executable that is on the PATH
 export PYTHON_EXEC="python"
-
