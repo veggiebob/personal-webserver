@@ -22,7 +22,6 @@ if [[ -z "${PYTHON_EXEC}" ]]; then
   export PYTHON_EXEC="python"
 fi
 
-echo "starting..."
 (
   # stolen from stack overflow
   SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
