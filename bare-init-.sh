@@ -17,7 +17,6 @@ for rep in "${repos[@]}"; do
   export SERVER_GHR_DEPS="veggiebob/$rep":$SERVER_GHR_DEPS;
   
   # just add it to the path no matter what
-  echo "adding $(pwd)/deps/$rep/ to PATH!"
   export PATH="$(pwd)/deps/$rep/":$PATH;
   if [[ -d "deps" && -f "$(pwd)/deps/$rep/Cargo.toml" ]]; then
     # prioritize release mode, but debug is ok too
@@ -27,7 +26,6 @@ for rep in "${repos[@]}"; do
   if [[ -d "deps" ]]; then
     if compgen -G "*.py" > /dev/null; then
       # so that directories with python can have scripts in them
-      echo "adding python repo directory to PATH! $(pwd)"
       export PATH="$(pwd)/deps/$rep/":$PATH;
     fi
   fi

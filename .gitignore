@@ -3,6 +3,9 @@
 /cache
 Cargo.lock
 
+# configuration files
+config
+
 # log files
 nohup.out
 .cargo-output

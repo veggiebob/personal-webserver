@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# server starts here
+
+if [[ $1 == "--init" ]]; then
+  . bare-init-.sh --create
+else
+  . bare-init-.sh
+fi
+
+echo "updating..."
+bash update-repos.sh
+
+if [[ -f config ]]; then
+  . config
+fi
+
+if [[ -z "${PYTHON_EXEC}" ]]; then
+  echo "Please provide a 'config' file with the environment variable
+    PYTHON_EXEC set to the name of the latest python executable"
+  echo "since it's not present, it will be set to 'python'"
+  export PYTHON_EXEC="python"
+fi
+
+(
+  # stolen from stack overflow
+  SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+  cd "$SCRIPT_DIR" || (echo "cd into directory $SCRIPT_DIR failed!" && exit 1)
+
+  # start the actual server, and then continue with other tasks
+  # note that SERVER_GHR_DEPS is now defined
+  bash run-.sh "$WEBSITE_SRC_LOC" "$WEBSITE_DEPLOY_LOC"
+)

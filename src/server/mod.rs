@@ -53,7 +53,7 @@ impl Website {
         }
     }
     fn get_resource(&self, url: String) -> Result<(SendMethod, String), String> {
-        let path: Vec<&str> = url.split("/").into_iter().filter(|s| !s.is_empty()).collect();
+        let path: Vec<&str> = url.split("/").into_iter().filter(|&s| !s.is_empty() && s != "..").collect();
         // println!("{:?}", path);
         if path.len() > 0 {
             let mut last_file = path.last().unwrap();
@@ -63,17 +63,30 @@ impl Website {
                 let args: Vec<_> = args.last().unwrap().split("&").collect();
                 // do something with args
             }
-            if last_file.ends_with(".js") {
-                Ok((SendMethod::PlainText, format!("{}/scripts/{}", self.loc, last_file)))
-            } else if vec![".html", ".css"].iter().any(|s| last_file.ends_with(s)) {
-                Ok((SendMethod::PlainText, format!("{}/layout/{}", self.loc, last_file)))
-            } else if vec![".jpg", ".ico", ".png"].iter().any(|s| last_file.ends_with(s)) {
-                Ok((SendMethod::Binary, format!("{}/layout/{}", self.loc, last_file)))
-            } else {
-                Err(format!("Don't know how to look for resource at {}", url))
+            let format = {
+                let plain = vec![".js", ".html", ".css"];
+                if plain.into_iter().any(|ext| last_file.ends_with(ext)) {
+                    SendMethod::PlainText
+                } else {
+                    SendMethod::Binary
+                }
+            };
+            let path = format!("{}/{}", self.loc, path.join("/"));
+            match std::fs::OpenOptions::new().read(true).open(&path) {
+                Ok(f) => {
+                    Ok(
+                        (
+                            format,
+                            path
+                        )
+                    )
+                },
+                Err(_) => {
+                    Err(format!("Could not open the file {}", path))
+                }
             }
         } else {
-            Ok((SendMethod::PlainText, format!("{}/layout/index.html", self.loc)))
+            Ok((SendMethod::PlainText, format!("{}/index.html", self.loc)))
         }
     }
     /**
