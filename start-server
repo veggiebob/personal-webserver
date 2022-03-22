@@ -2,6 +2,10 @@
 
 # server starts here
 
+if [[ -f config ]]; then
+  . config
+fi
+
 if [[ $1 == "--init" ]]; then
   . bare-init-.sh --create
 else
@@ -10,10 +14,6 @@ fi
 
 echo "updating..."
 bash update-repos.sh
-
-if [[ -f config ]]; then
-  . config
-fi
 
 if [[ -z "${PYTHON_EXEC}" ]]; then
   echo "Please provide a 'config' file with the environment variable
