@@ -133,7 +133,7 @@ impl Website {
                                 "POST" => {
                                     info!("received a POST message!");
                                     info!("data: {}", String::from_utf8_lossy(&buffer[..]));
-                                    if let Some(len) = header_data.get("Content-Length") {
+                                    if let Some(len) = header_data.get("content-length") {
                                         if let Ok(len) = usize::from_str(len) {
                                             let body = &body[..len as usize];
                                             self.handle_put(url, &header_data, body)
@@ -141,7 +141,7 @@ impl Website {
                                             create_bad_request_error("Content-Length not a number.".into())
                                         }
                                     } else {
-                                        create_bad_request_error("PUT request missing Content-Length header.".into())
+                                        create_bad_request_error("POST request missing Content-Length header.".into())
                                     }
                                 }
                                 _ => {
@@ -171,8 +171,8 @@ impl Website {
         // println!("url is {}", url);
         let body_text: String = String::from_utf8_lossy(body).into();
         if url == "/parse" {
-            if let Some(mode) = header.get("Parse-Mode") {
-                match run_parse_demo(body_text, mode, header.get("Output-Mode").unwrap_or(&"json".to_string())) {
+            if let Some(mode) = header.get("parse-mode") {
+                match run_parse_demo(body_text, mode, header.get("output-mode").unwrap_or(&"json".to_string())) {
                     Ok(output) => PlainText(output),
                     Err(e) => create_bad_request_error(e)
                 }
@@ -251,7 +251,7 @@ fn parse_headers<T: ToString>(header: T) -> Header {
         let parts = line.split(": ").collect::<Vec<_>>();
         if parts.len() == 2 {
             data.insert(
-                parts.get(0).unwrap().trim().into(),
+                parts.get(0).unwrap().trim().to_lowercase().into(),
                 parts.get(1).unwrap().trim().into(),
             );
         }
