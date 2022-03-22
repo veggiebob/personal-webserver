@@ -1,6 +1,6 @@
 #!/bin/bash
 
-repos=("left-right-parsing" "personal-website" "gym-data-recorder")
+repos=("left-right-parsing" "static-personal-website" "gym-data-recorder")
 
 
 if [[ $1 == "--create" ]]
@@ -9,6 +9,11 @@ then
   mkdir deps
 else
   bare="false"
+fi
+
+if [[ -z "${GITHUB_USER}" ]]; then
+    echo "GITHUB_USER being set to 'git@github.com'"
+    export GITHUB_USER="git@github.com"
 fi
 
 export SERVER_GHR_DEPS=""
@@ -32,7 +37,7 @@ for rep in "${repos[@]}"; do
   if [[ $bare == "true" &&  -d "deps" ]]; then
     (
       cd "deps"
-      git clone "github-personal:veggiebob/$rep.git"
+      git clone "$GITHUB_USER:veggiebob/$rep.git"
     )
   fi
 done

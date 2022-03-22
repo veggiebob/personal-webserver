@@ -6,7 +6,10 @@
 export WEBSITE_DEPLOY_LOC="localhost:8080"
 
 # set the location of the website source (frontend content)
-export WEBSITE_SRC_LOC="deps/personal-website"
+export WEBSITE_SRC_LOC="deps/static-personal-website"
 
 # set to a python executable that is on the PATH
 export PYTHON_EXEC="python"
+
+# ssh profile used to clone repositories
+export GITHUB_USER="git@github.com"

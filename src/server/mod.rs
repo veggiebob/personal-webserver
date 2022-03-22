@@ -33,17 +33,17 @@ pub fn main(site: Arc<Website>, address: &str) {
 }
 
 pub struct Website {
-    loc: String
+    loc: String,
 }
 
 enum SendMethod {
     Binary,
-    PlainText
+    PlainText,
 }
 
 enum Response {
     Binary(Vec<u8>),
-    PlainText(String)
+    PlainText(String),
 }
 
 impl Website {
@@ -80,7 +80,7 @@ impl Website {
                             path
                         )
                     )
-                },
+                }
                 Err(_) => {
                     Err(format!("Could not open the file {}", path))
                 }
@@ -110,7 +110,6 @@ impl Website {
         // split into header and body
         let sections: Vec<_> = data_as_string.split("\r\n\r\n").collect();
         let response = if sections.len() >= 2 {
-
             let header = sections.get(0).unwrap();
             let header_data = parse_headers(header);
 
@@ -144,14 +143,14 @@ impl Website {
                                     } else {
                                         create_bad_request_error("PUT request missing Content-Length header.".into())
                                     }
-                                },
+                                }
                                 _ => {
                                     create_bad_request_error("what are you even trying to do".to_string())
                                 }
                             }
                         }
                     }
-                },
+                }
                 None => create_bad_request_error("Malformatted request.".to_string())
             }
         } else {
@@ -160,7 +159,7 @@ impl Website {
         match response {
             Response::PlainText(string) => {
                 stream.write(string.as_bytes()).unwrap();
-            },
+            }
             Response::Binary(data) => {
                 stream.write(data.as_slice()).unwrap();
             }
@@ -192,12 +191,21 @@ impl Website {
     }
 
     fn handle_get(&self, url: &str) -> Response {
+        let extra_headers = vec![
+            "Access-Control-Allow-Origin: *",
+            "Access-Control-Allow-Methods: POST, GET",
+            "Access-Control-Max-Age: 86400"
+        ]
+            .into_iter()
+            .map(|x| format!("{}\r\n", x))
+            .collect::<Vec<_>>().join(""); // ends in \r\n
         match self.get_resource(url.to_string()) {
             Ok((send_method, resource_path)) => match send_method {
                 SendMethod::PlainText =>
                     match fs::read_to_string(resource_path.clone()) {
                         Ok(resource_file) => Response::PlainText(format!(
-                            "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
+                            "HTTP/1.1 200 OK\r\n{}Content-Length: {}\r\n\r\n{}",
+                            extra_headers,
                             resource_file.len(),
                             resource_file
                         )),
@@ -209,7 +217,8 @@ impl Website {
                     match fs::read(resource_path.clone()) {
                         Ok(binary_data) => {
                             let header = format!(
-                                "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n",
+                                "HTTP/1.1 200 OK\r\n{}Content-Length: {}\r\n\r\n",
+                                extra_headers,
                                 binary_data.len());
                             let mut data = Vec::with_capacity(header.len() + binary_data.len());
                             for c in header.as_bytes() {
@@ -219,7 +228,7 @@ impl Website {
                                 data.push(b);
                             }
                             Response::Binary(data)
-                        },
+                        }
                         Err(err) => create_bad_request_error(
                             format!("Cannot open file: {}", err.to_string())
                         )
@@ -243,7 +252,7 @@ fn parse_headers<T: ToString>(header: T) -> Header {
         if parts.len() == 2 {
             data.insert(
                 parts.get(0).unwrap().trim().into(),
-                parts.get(1).unwrap().trim().into()
+                parts.get(1).unwrap().trim().into(),
             );
         }
     }
