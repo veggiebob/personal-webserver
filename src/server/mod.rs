@@ -66,6 +66,7 @@ impl Website {
             let format = {
                 let plain = vec![".js", ".html", ".css"];
                 if plain.into_iter().any(|ext| last_file.ends_with(ext)) {
+                    info!("sending {} as plain text", last_file);
                     SendMethod::PlainText
                 } else {
                     SendMethod::Binary
@@ -218,7 +219,11 @@ impl Website {
                         Ok(binary_data) => {
                             let header = format!(
                                 "HTTP/1.1 200 OK\r\n{}Content-Length: {}\r\n\r\n",
-                                extra_headers,
+                                if resource_path.ends_with(".svg") {
+                                    format!("{}{}\r\n", extra_headers, "Content-Type: image/svg+xml")
+                                } else {
+                                    extra_headers
+                                },
                                 binary_data.len());
                             let mut data = Vec::with_capacity(header.len() + binary_data.len());
                             for c in header.as_bytes() {
