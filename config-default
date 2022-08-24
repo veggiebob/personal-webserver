@@ -13,3 +13,6 @@ export PYTHON_EXEC="python"
 
 # ssh profile used to clone repositories
 export GITHUB_USER="git@github.com"
+
+# location of gym population data to query
+export GYM_POP_SOURCE="output_pd.csv"
