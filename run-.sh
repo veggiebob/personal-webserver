@@ -8,6 +8,6 @@ then
 else
   echo "compiling..."
   cargo build --release 2> .cargo-output
-  echo "starting..."
+  echo "starting at $2"
   authbind --deep ./target/release/personal-webserver "$1" "$2"
 fi

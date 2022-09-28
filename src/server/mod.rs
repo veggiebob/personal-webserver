@@ -93,7 +93,7 @@ impl Website {
     /**
     HTTP Format:
     ```
-    data: [GET|SET|POST] URL HTTP/[HTTP Version]\r\n
+    data: [GET|PUT|POST] URL HTTP/[HTTP Version]\r\n
     Header-Key: Header-Value\r\n
     ...
     Content-Length: [length in bytes]\r\n
@@ -144,6 +144,10 @@ impl Website {
                                     } else {
                                         create_bad_request_error("POST request missing Content-Length header.".into())
                                     }
+                                },
+                                "OPTIONS" => {
+                                    info!("recieved an OPTIONS message!");
+                                    self.handle_options(url)
                                 }
                                 _ => {
                                     create_bad_request_error("what are you even trying to do".to_string())
@@ -168,6 +172,10 @@ impl Website {
         stream.flush().unwrap();
     }
 
+    fn handle_options(&self, url: &str) -> Response {
+        create_options_response()
+    }
+
     fn handle_put(&self, url: &str, header: &Header, body: &[u8]) -> Response {
         // println!("url is {}", url);
         let body_text: String = String::from_utf8_lossy(body).into();
@@ -179,12 +187,6 @@ impl Website {
                 }
             } else {
                 create_bad_request_error("Parse requires a 'Parse-Mode' header to work.".into())
-            }
-        } else if url == "/gym-population" {
-            // run the gym data demo!
-            match query_gym_data("") {
-                Ok(output) => PlainText(output),
-                Err(e) => create_bad_request_error(e)
             }
         } else {
             create_bad_request_error(format!("Don't know what to do with the url {}", url))
@@ -200,6 +202,18 @@ impl Website {
             .into_iter()
             .map(|x| format!("{}\r\n", x))
             .collect::<Vec<_>>().join(""); // ends in \r\n
+        if url == "/gym-population" {
+            // run the gym data demo!
+            return match query_gym_data("") {
+                Ok(output) => PlainText(format!(
+                    "HTTP/1.1 200 OK\r\n{}Content-Length: {}\r\n\r\n{}",
+                    extra_headers,
+                    output.len(),
+                    output
+                )),
+                Err(e) => create_bad_request_error(e)
+            }
+        }
         match self.get_resource(url.to_string()) {
             Ok((send_method, resource_path)) => match send_method {
                 SendMethod::PlainText =>
@@ -266,4 +280,9 @@ fn parse_headers<T: ToString>(header: T) -> Header {
 
 fn create_bad_request_error(description: String) -> Response {
     Response::PlainText(format!("HTTP/1.1 400 {}\r\n\r\n", description))
+}
+
+fn create_options_response() -> Response {
+    Response::PlainText(format!("HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\n\
+    Access-Control-Allow-Headers: *\r\nAllow: GET, POST, HEAD\r\n\r\n"))
 }
