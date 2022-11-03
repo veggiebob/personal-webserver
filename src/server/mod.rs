@@ -173,6 +173,7 @@ impl Website {
     }
 
     fn handle_options(&self, url: &str) -> Response {
+        info!("received options at {}", url);
         create_options_response()
     }
 
@@ -198,7 +199,7 @@ impl Website {
         let extra_headers = vec![
             "Access-Control-Allow-Origin: *",
             "Access-Control-Allow-Headers: *",
-            "Access-Control-Allow-Methods: POST, GET, PUT",
+            "Access-Control-Allow-Methods: POST, GET, PUT, OPTIONS",
         ]
             .into_iter()
             .map(|x| format!("{}\r\n", x))
@@ -285,5 +286,5 @@ fn create_bad_request_error(description: String) -> Response {
 
 fn create_options_response() -> Response {
     Response::PlainText(format!("HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\n\
-    Access-Control-Allow-Headers: *\r\nAllow: GET, POST, HEAD\r\n\r\n"))
+    Access-Control-Allow-Headers: *\r\nAllow: GET, PUT, OPTIONS, HEAD, POST, DELETE\r\n\r\n"))
 }
