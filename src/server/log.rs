@@ -5,18 +5,18 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 
 /// Info: purely for checking or curiosity
-const INFO_FILE: &str = "info";
+const INFO_FILE: &str = "info.txt";
 
 /// Warnings: things that should probably be dealt
 /// with at some point but aren't fatal.
-const WARN_FILE: &str = "warn";
+const WARN_FILE: &str = "warn.txt";
 
 /// For debug (temporary) messages so that they don't get
 /// mixed up with other messages which should be more permanent and meaningful.
-const DEBUG_FILE: &str = "debug";
+const DEBUG_FILE: &str = "debug.txt";
 
 /// Everything gets logged here.
-const VERBOSE_FILE: &str = "verbose";
+const VERBOSE_FILE: &str = "verbose.txt";
 
 /// The logger!
 pub struct Logger {
@@ -26,7 +26,7 @@ pub struct Logger {
 impl Logger {
     pub fn new(folder: &str) -> Result<Logger, String> {
         std::fs::create_dir_all(folder)
-            .map_err(|e| e.to_string());
+            .map_err(|e| e.to_string())?;
         Ok(Logger {
             log_location: {
                 let mut path = PathBuf::new();
@@ -40,8 +40,8 @@ impl Logger {
             self.open(
                 filename,
                 OpenOptions::new().create(true).write(true).truncate(true),
-                |f| f.flush()
-            );
+                |f| f.flush().unwrap()
+            ).expect("Logger::clear_all_logs: unable to clear logs");
         }
     }
 
@@ -52,9 +52,9 @@ impl Logger {
             INFO_FILE,
             &opt,
             |f| {
-                writeln!(f, "{}", message)
+                writeln!(f, "{}", message).unwrap()
             }
-        );
+        ).unwrap();
         self.verbose(message);
     }
 
@@ -65,9 +65,9 @@ impl Logger {
             DEBUG_FILE,
             &opt,
             |f| {
-                writeln!(f, "{}", message)
+                writeln!(f, "{}", message).unwrap()
             }
-        );
+        ).unwrap();
         self.verbose(message);
     }
 
@@ -78,9 +78,9 @@ impl Logger {
             WARN_FILE,
             &opt,
             |f| {
-                writeln!(f, "{}", message)
+                writeln!(f, "{}", message).unwrap()
             }
-        );
+        ).unwrap();
         self.verbose(message);
     }
 
@@ -91,9 +91,9 @@ impl Logger {
             VERBOSE_FILE,
             &opt,
             |f| {
-                writeln!(f, "{}", message)
+                writeln!(f, "{}", message).unwrap()
             }
-        );
+        ).unwrap();
     }
 
     fn open<T, F: Fn(&mut File) -> T>(&mut self, filename: &str, open_options: &OpenOptions, f: F) -> Result<T, String> {

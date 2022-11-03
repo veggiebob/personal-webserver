@@ -194,6 +194,7 @@ impl Website {
     }
 
     fn handle_get(&self, url: &str) -> Response {
+        info!("received a get message!");
         let extra_headers = vec![
             "Access-Control-Allow-Origin: *",
             "Access-Control-Allow-Methods: POST, GET",
