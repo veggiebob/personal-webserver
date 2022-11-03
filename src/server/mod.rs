@@ -197,8 +197,8 @@ impl Website {
         info!("received a get message!");
         let extra_headers = vec![
             "Access-Control-Allow-Origin: *",
-            "Access-Control-Allow-Methods: POST, GET",
-            "Access-Control-Max-Age: 86400"
+            "Access-Control-Allow-Headers: *",
+            "Access-Control-Allow-Methods: POST, GET, PUT",
         ]
             .into_iter()
             .map(|x| format!("{}\r\n", x))
