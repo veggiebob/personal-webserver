@@ -9,12 +9,14 @@ use crate::Logger;
 use crate::server::gym_population::query_gym_data;
 use crate::server::left_right_parse_demo::run_parse_demo;
 use crate::server::Response::PlainText;
+use crate::server::secret_santa::{get_santa_options, query_santa_data};
 use crate::server::threadpool::ThreadPool;
 
 mod threadpool;
 mod cache;
 pub mod left_right_parse_demo;
 pub mod gym_population;
+pub mod secret_santa;
 pub mod log;
 
 pub fn main(site: Arc<Website>, address: &str) {
@@ -195,7 +197,7 @@ impl Website {
     }
 
     fn handle_get(&self, url: &str) -> Response {
-        info!("received a get message!");
+        info!("received a get message at {}", url);
         let extra_headers = vec![
             "Access-Control-Allow-Origin: *",
             "Access-Control-Allow-Headers: *",
@@ -216,6 +218,39 @@ impl Website {
                 Err(e) => create_bad_request_error(e)
             }
         }
+        if url == "/secret-santa/options" {
+            return match get_santa_options() {
+                Ok(output) => PlainText(format!(
+                    "HTTP/1.1 200 OK\r\n{}Content-Length: {}\r\n\r\n{}",
+                    extra_headers,
+                    output.len(),
+                    output
+                )),
+                Err(e) => create_bad_request_error(e)
+            }
+        }
+
+        let mut after_slash = String::new();
+        let mut f = |c| {
+            if c == '/' {
+                after_slash = String::new();
+            } else {
+                after_slash.push(c);
+            }
+        };
+        url.chars().into_iter().for_each(f);
+        if url.starts_with("/secret-santa/giftee/") && after_slash.len() > 0 {
+            return match query_santa_data(after_slash) {
+                Ok(output) => PlainText(format!(
+                    "HTTP/1.1 200 OK\r\n{}Content-Length: {}\r\n\r\n{}",
+                    extra_headers,
+                    output.len(),
+                    output
+                )),
+                Err(e) => create_bad_request_error(e)
+            }
+        }
+
         match self.get_resource(url.to_string()) {
             Ok((send_method, resource_path)) => match send_method {
                 SendMethod::PlainText =>
