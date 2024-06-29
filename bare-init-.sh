@@ -1,6 +1,6 @@
 #!/bin/bash
 
-repos=("left-right-parsing" "static-personal-website" "gym-data-recorder" "secret-santa")
+repos=("left-right-parsing" "static-personal-website" "gym-data-recorder" "secret-santa" "bf2spl")
 
 
 if [[ $1 == "--create" ]]

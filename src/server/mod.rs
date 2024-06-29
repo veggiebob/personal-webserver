@@ -6,6 +6,7 @@ use std::str::FromStr;
 use std::sync::Arc;
 use crate::info;
 use crate::Logger;
+use crate::server::bf_translate_demo::run_translate_demo;
 use crate::server::gym_population::query_gym_data;
 use crate::server::left_right_parse_demo::run_parse_demo;
 use crate::server::Response::PlainText;
@@ -15,6 +16,7 @@ use crate::server::threadpool::ThreadPool;
 mod threadpool;
 mod cache;
 pub mod left_right_parse_demo;
+pub mod bf_translate_demo;
 pub mod gym_population;
 pub mod secret_santa;
 pub mod log;
@@ -182,6 +184,14 @@ impl Website {
     fn handle_put(&self, url: &str, header: &Header, body: &[u8]) -> Response {
         // println!("url is {}", url);
         let body_text: String = String::from_utf8_lossy(body).into();
+        let extra_headers = vec![
+            "Access-Control-Allow-Origin: *",
+            "Access-Control-Allow-Headers: *",
+            "Access-Control-Allow-Methods: POST, GET, PUT, OPTIONS",
+        ]
+            .into_iter()
+            .map(|x| format!("{}\r\n", x))
+            .collect::<Vec<_>>().join(""); // ends in \r\n
         if url == "/parse" {
             if let Some(mode) = header.get("parse-mode") {
                 match run_parse_demo(body_text, mode, header.get("output-mode").unwrap_or(&"json".to_string())) {
@@ -191,7 +201,20 @@ impl Website {
             } else {
                 create_bad_request_error("Parse requires a 'Parse-Mode' header to work.".into())
             }
-        } else {
+        } else if url.starts_with("/translatebf2spl") {
+            let ai = url.ends_with("/ai");
+            let mode = if ai { "ai" } else { "" };
+            return match run_translate_demo(body_text, mode) {
+                Ok(output) => PlainText(format!(
+                    "HTTP/1.1 200 OK\r\n{}Content-Length: {}\r\n\r\n{}",
+                    extra_headers,
+                    output.len(),
+                    output
+                )),
+                Err(e) => create_bad_request_error(e)
+            }
+        }
+        else {
             create_bad_request_error(format!("Don't know what to do with the url {}", url))
         }
     }
@@ -321,5 +344,6 @@ fn create_bad_request_error(description: String) -> Response {
 
 fn create_options_response() -> Response {
     Response::PlainText(format!("HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\n\
-    Access-Control-Allow-Headers: *\r\nAllow: GET, PUT, OPTIONS, HEAD, POST, DELETE\r\n\r\n"))
+    Access-Control-Allow-Headers: *\r\nAllow: GET, PUT, OPTIONS, HEAD, POST, DELETE\r\n\
+    Access-Control-Allow-Headers: Content-Type\r\n\r\n"))
 }
