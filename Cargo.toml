@@ -7,4 +7,4 @@ edition = "2018"
 
 [dependencies]
 chrono = "0.4"
-ureq = "2.4.*"
+ureq = "2.9.*"

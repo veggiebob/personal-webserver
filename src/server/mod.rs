@@ -7,6 +7,7 @@ use std::sync::Arc;
 use crate::info;
 use crate::Logger;
 use crate::server::bf_translate_demo::run_translate_demo;
+use crate::server::gpt_client::run_client;
 use crate::server::gym_population::query_gym_data;
 use crate::server::left_right_parse_demo::run_parse_demo;
 use crate::server::Response::PlainText;
@@ -20,6 +21,7 @@ pub mod bf_translate_demo;
 pub mod gym_population;
 pub mod secret_santa;
 pub mod log;
+pub mod gpt_client;
 
 pub fn main(site: Arc<Website>, address: &str) {
     info!("starting server...");
@@ -205,6 +207,16 @@ impl Website {
             let ai = url.ends_with("/ai");
             let mode = if ai { "ai" } else { "" };
             return match run_translate_demo(body_text, mode) {
+                Ok(output) => PlainText(format!(
+                    "HTTP/1.1 200 OK\r\n{}Content-Length: {}\r\n\r\n{}",
+                    extra_headers,
+                    output.len(),
+                    output
+                )),
+                Err(e) => create_bad_request_error(e)
+            }
+        } else if url.starts_with("/gpt-client") {
+            return match run_client(body_text) {
                 Ok(output) => PlainText(format!(
                     "HTTP/1.1 200 OK\r\n{}Content-Length: {}\r\n\r\n{}",
                     extra_headers,
